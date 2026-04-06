@@ -2,38 +2,87 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard - Paasquiz 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; padding: 40px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; border-bottom: 1px solid #334155; text-align: left; }
-        .reset { background: #ef4444; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; float: right; }
+        body { background: #0f172a; color: #f8fafc; font-family: sans-serif; padding: 20px; text-align: center; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; max-width: 800px; margin: 20px auto; text-align: left; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; }
+        .status-bar { padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; }
+        .online { background: #064e3b; color: #34d399; }
+        .error { background: #7f1d1d; color: #fca5a5; }
     </style>
 </head>
 <body>
-    <input type="password" id="pw" placeholder="Wachtwoord (1234)" oninput="if(this.value==='1234') document.getElementById('main').style.display='block'">
-    <div id="main" style="display:none">
-        <button class="reset" onclick="resetData()">RESET ALLES</button>
-        <h1>Live Monitor</h1>
+    <h1>🛠 Paasquiz Monitor</h1>
+    
+    <div id="login-section">
+        <input type="password" id="admin-pw" placeholder="Wachtwoord (1234)" style="padding:10px; border-radius:5px;">
+        <button onclick="checkAdmin()" style="padding:10px 20px; cursor:pointer;">Inloggen</button>
+    </div>
+
+    <div id="admin-content" style="display:none;" class="card">
+        <div id="status" class="status-bar online">Verbinding maken...</div>
         <table>
-            <thead><tr><th>Naam</th><th>Vraag</th><th>Antwoord</th></tr></thead>
-            <tbody id="tb"></tbody>
+            <thead>
+                <tr><th>Speler</th><th>Vraag</th><th>Laatste Antwoord</th></tr>
+            </thead>
+            <tbody id="player-table">
+                <tr><td colspan="3">Nog geen data ontvangen...</td></tr>
+            </tbody>
         </table>
     </div>
+
     <script>
-        const supabaseClient = supabase.createClient('https://bltdlfuxiboskglkmbhd.supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
-        async function load() {
-            const {data} = await supabaseClient.from('spelers').select('*').order('updated_at', {ascending:false});
-            if(data) document.getElementById('tb').innerHTML = data.map(p => `<tr><td>${p.naam}</td><td>${p.vraag_nr}</td><td>${p.laatste_antwoord}</td></tr>`).join('');
-        }
-        async function resetData() {
-            if(confirm('Alles wissen?')) {
-                await supabaseClient.from('spelers').delete().neq('naam', 'x');
-                await supabaseClient.from('reacties').delete().neq('id', 0);
+        const SUPABASE_URL = 'https://bltdlfuxiboskglkmbhd.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function checkAdmin() {
+            if(document.getElementById('admin-pw').value === '1234') {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('admin-content').style.display = 'block';
+                startMonitoring();
+            } else {
+                alert("Fout wachtwoord!");
             }
         }
-        setInterval(load, 2000);
+
+        async function updateTable() {
+            const { data, error } = await supabase
+                .from('spelers')
+                .select('*')
+                .order('updated_at', { ascending: false });
+
+            const statusDiv = document.getElementById('status');
+            
+            if (error) {
+                statusDiv.innerText = "Fout: " + error.message;
+                statusDiv.className = "status-bar error";
+                return;
+            }
+
+            statusDiv.innerText = "Systeem Online - Laatste update: " + new Date().toLocaleTimeString();
+            statusDiv.className = "status-bar online";
+
+            if (data && data.length > 0) {
+                const tbody = document.getElementById('player-table');
+                tbody.innerHTML = data.map(p => `
+                    <tr>
+                        <td style="color:#fbbf24; font-weight:bold;">${p.naam}</td>
+                        <td>${p.vraag_nr} / 10</td>
+                        <td style="font-style:italic;">${p.laatste_antwoord || '-'}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function startMonitoring() {
+            updateTable();
+            setInterval(updateTable, 2000);
+        }
     </script>
 </body>
 </html>
