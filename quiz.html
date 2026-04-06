@@ -28,4 +28,91 @@
 
     <div class="card hidden" id="f-box">
         <h2>Je bent een Topper! 🌟</h2>
-        <p>Je hebt alle 20 vragen beantwoord. Wat vond je ervan? Laat een berichtje achter
+        <p>Je hebt alle 20 vragen beantwoord. Wat vond je ervan? Laat een berichtje achter voor de rest op de Paasmuur:</p>
+        <textarea id="msg" rows="4" placeholder="Typ hier je paaswens of berichtje..."></textarea>
+        <button id="send-btn" onclick="sendMsg()">Post op de Paasmuur 🚀</button>
+    </div>
+
+    <script>
+        const supabaseClient = supabase.createClient('https://bltdlfuxiboskglkmbhd.supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
+        
+        // Haal de naam op die in index.html is ingevuld
+        const naam = localStorage.getItem('paasNaam') || 'Anoniem';
+        let idx = 0;
+
+        // De 20 vrolijke vragen
+        const qs = [
+            {q: "Wat verstopt de Paashaas het liefst?", a: ["Sokken", "Paaseieren", "Hondenbrokken"]},
+            {q: "Welke kleur heeft een kuikentje?", a: ["Geel", "Paars", "Puntjes"]},
+            {q: "Wat voor geluid maakt een kip?", a: ["Boe", "Tok Tok", "Miau"]},
+            {q: "Wat zit er vaak in een chocolade ei?", a: ["Lucht", "Speelgoed", "Broccoli"]},
+            {q: "Hoe loopt een paashaas?", a: ["Waggelen", "Huppelen", "Rennen"]},
+            {q: "Welke kleur heeft een wortel?", a: ["Blauw", "Oranje", "Roze"]},
+            {q: "Wat eten we vaak bij het luxe paasontbijt?", a: ["Pizza", "Paasstol", "Patat"]},
+            {q: "Wat doe je met een eitje voor je hem opeet?", a: ["Schilderen", "Wassen", "Strijken"]},
+            {q: "Hoeveel oren heeft een paashaas?", a: ["1", "2", "Veel"]},
+            {q: "Waar komen eieren vandaan?", a: ["De fabriek", "De kip", "De boom"]},
+            {q: "Wat is het lekkerste aan Pasen?", a: ["Chocolade", "Huiswerk", "Regen"]},
+            {q: "Welke bloem hoort bij de lente?", a: ["Cactus", "Narcis", "Denneboom"]},
+            {q: "Als een ei valt, dan...", a: ["Breekt het", "Vliegt het weg", "Lacht het"]},
+            {q: "Wat draagt de Paashaas om zijn eieren in te doen?", a: ["Rugzak", "Mandje", "Vuilniszak"]},
+            {q: "Welk dier komt uit een ei?", a: ["Hond", "Vogel", "Olifant"]},
+            {q: "Wat voor weer is het hopelijk met Pasen?", a: ["Sneeuw", "Zon", "Onweer"]},
+            {q: "Hoeveel eieren kun je op op een lege maag?", a: ["1", "10", "Geen"]},
+            {q: "Welk snoepje lijkt op een eitje?", a: ["Drop", "M&M's", "Lolly"]},
+            {q: "Wie is de snelste met eieren zoeken?", a: ["Ik!", "Oma", "De kat"]},
+            {q: "Ben je klaar voor de paasbrunch?", a: ["Ja!", "Nee", "Bijna"]}
+        ];
+
+        function show() {
+            if(idx >= qs.length) { 
+                document.getElementById('q-box').classList.add('hidden'); 
+                document.getElementById('f-box').classList.remove('hidden'); 
+                return; 
+            }
+            
+            document.getElementById('q-num').innerText = `Vraag ${idx + 1} / ${qs.length}`;
+            document.getElementById('q-txt').innerText = qs[idx].q;
+            
+            const div = document.getElementById('opts'); 
+            div.innerHTML = '';
+            
+            qs[idx].a.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = 'opt'; 
+                b.innerText = opt;
+                b.onclick = () => next(opt);
+                div.appendChild(b);
+            });
+        }
+
+        async function next(ans) {
+            // Belangrijk: we gebruiken .insert() zodat de Admin elk antwoord kan zien
+            await supabaseClient.from('spelers').insert([{
+                naam: naam, 
+                vraag_nr: idx + 1, 
+                laatste_antwoord: ans
+            }]);
+
+            idx++; 
+            show();
+        }
+
+        async function sendMsg() {
+            const m = document.getElementById('msg').value;
+            if(!m) return;
+            
+            await supabaseClient.from('reacties').insert([{
+                naam: naam, 
+                bericht: m
+            }]);
+            
+            // Stuur de speler direct naar de gezellige Paasmuur
+            window.location.href = 'reacties.html';
+        }
+
+        // Start de eerste vraag
+        show();
+    </script>
+</body>
+</html>
