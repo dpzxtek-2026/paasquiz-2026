@@ -2,30 +2,31 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Paasquiz 2026 - Start!</title>
+    <title>De Super Vrolijke Paasquiz 🐣</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #fff9c4; font-family: 'Segoe UI', sans-serif; padding: 20px; display: flex; justify-content: center; }
-        .card { background: white; padding: 2rem; border-radius: 20px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .opt { display: block; width: 100%; padding: 12px; margin: 10px 0; background: #f8f9fa; border-radius: 10px; cursor: pointer; border: 2px solid #eee; font-size: 1.1rem; transition: 0.2s; }
-        .opt:hover { background: #ffe082; border-color: #ffb74d; }
+        body { background: #e0f7fa; font-family: 'Segoe UI', sans-serif; padding: 20px; display: flex; justify-content: center; }
+        .card { background: white; padding: 2rem; border-radius: 25px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 5px solid #80deea; }
+        .opt { display: block; width: 100%; padding: 15px; margin: 10px 0; background: #f1f8e9; border-radius: 15px; cursor: pointer; border: 2px solid #c5e1a5; font-size: 1.1rem; transition: 0.3s; font-weight: bold; color: #33691e; }
+        .opt:hover { background: #dcedc8; transform: scale(1.02); }
         .hidden { display: none; }
-        textarea { width: 100%; border-radius: 10px; padding: 10px; margin-top: 15px; border: 1px solid #ccc; box-sizing: border-box; }
-        button#send-btn { background: #ffb74d; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        textarea { width: 100%; border-radius: 10px; padding: 10px; margin-top: 15px; border: 2px solid #80deea; box-sizing: border-box; font-family: inherit; }
+        #send-btn { background: #00bcd4; color: white; border: none; padding: 15px; width: 100%; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1.2rem; }
+        .progress { font-size: 1rem; color: #00838f; font-weight: bold; margin-bottom: 15px; }
     </style>
 </head>
 <body>
     <div class="card" id="q-box">
-        <h2 id="q-num">Vraag 1 / 10</h2>
-        <p id="q-txt" style="font-size: 1.2rem; font-weight: bold;"></p>
+        <div class="progress" id="q-num">Vraag 1 / 20</div>
+        <p id="q-txt" style="font-size: 1.4rem; font-weight: bold; color: #006064;"></p>
         <div id="opts"></div>
     </div>
 
     <div class="card hidden" id="f-box">
-        <h2>Goed gedaan! 🐣</h2>
-        <p>Je bent klaar! Laat een berichtje achter op de Paasmuur:</p>
-        <textarea id="msg" rows="4" placeholder="Typ hier je paaswens..."></textarea>
-        <button id="send-btn" onclick="sendMsg()">Verstuur naar de muur</button>
+        <h2>Je bent een Topper! 🌟</h2>
+        <p>20 vragen beantwoord! Wat vond je ervan? Laat het de rest weten op de muur:</p>
+        <textarea id="msg" rows="4" placeholder="Typ hier je berichtje..."></textarea>
+        <button id="send-btn" onclick="sendMsg()">Post op de Paasmuur 🚀</button>
     </div>
 
     <script>
@@ -34,16 +35,26 @@
         let idx = 0;
 
         const qs = [
-            {q: "Wat verstopt de Paashaas?", a: ["Paaseieren", "Paasbrood", "Paassokken"]},
-            {q: "Welke kleur hebben de meeste kuikentjes?", a: ["Blauw", "Geel", "Groen"]},
-            {q: "Waar wordt een paasvuur meestal van gemaakt?", a: ["Plastic", "Snoep", "Snoeihout"]},
-            {q: "Hoe noemen we een ei dat niet van chocolade is?", a: ["Een nepeitje", "Een kippenei", "Een kwartelei"]},
-            {q: "Wat eten veel mensen bij het paasontbijt?", a: ["Oliebollen", "Paasstol", "Stamppot"]},
-            {q: "Welk dier legt de eieren die we eten?", a: ["De haas", "De kip", "De eend"]},
-            {q: "Welk seizoen begint rond Pasen?", a: ["De herfst", "De winter", "De lente"]},
-            {q: "Wat doen kinderen vaak met eieren?", a: ["Voetballen", "Schilderen", "Opsturen"]},
-            {q: "Hoe heet de dag vóór Pasen?", a: ["Stille Zaterdag", "Lawaai Zaterdag", "Luie Zaterdag"]},
-            {q: "Wie komt er gezellig op bezoek tijdens dit spel?", a: ["De Kerstman", "De Paashaas", "Sinterklaas"]}
+            {q: "Wat verstopt de Paashaas het liefst?", a: ["Sokken", "Paaseieren", "Hondenbrokken"]},
+            {q: "Welke kleur heeft een kuikentje?", a: ["Geel", "Paars", "Puntjes"]},
+            {q: "Wat voor geluid maakt een kip?", a: ["Boe", "Tok Tok", "Miau"]},
+            {q: "Wat zit er vaak in een chocolade ei?", a: ["Lucht", "Speelgoed", "Broccoli"]},
+            {q: "Hoe loopt een paashaas?", a: ["Waggelen", "Huppelen", "Rennen"]},
+            {q: "Welke kleur heeft een wortel?", a: ["Blauw", "Oranje", "Roze"]},
+            {q: "Wat eten we vaak bij het luxe paasontbijt?", a: ["Pizza", "Paasstol", "Patat"]},
+            {q: "Wat doe je met een eitje voor je hem opeet?", a: ["Schilderen", "Wassen", "Strijken"]},
+            {q: "Hoeveel oren heeft een paashaas?", a: ["1", "2", "Veel"]},
+            {q: "Waar komen eieren vandaan?", a: ["De fabriek", "De kip", "De boom"]},
+            {q: "Wat is het lekkerste aan Pasen?", a: ["Chocolade", "Huiswerk", "Regen"]},
+            {q: "Welke bloem hoort bij de lente?", a: ["Cactus", "Narcis", "Denneboom"]},
+            {q: "Als een ei valt, dan...", a: ["Breekt het", "Vliegt het weg", "Lacht het"]},
+            {q: "Wat draagt de Paashaas om zijn eieren in te doen?", a: ["Rugzak", "Mandje", "Vuilniszak"]},
+            {q: "Welk dier komt uit een ei?", a: ["Hond", "Vogel", "Olifant"]},
+            {q: "Wat voor weer is het hopelijk met Pasen?", a: ["Sneeuw", "Zon", "Onweer"]},
+            {q: "Hoeveel eieren kun je op op een lege maag?", a: ["1", "10", "Geen"]},
+            {q: "Welk snoepje lijkt op een eitje?", a: ["Drop", "M&M's", "Lolly"]},
+            {q: "Wie is de snelste met eieren zoeken?", a: ["Ik!", "Oma", "De kat"]},
+            {q: "Ben je klaar voor de paasbrunch?", a: ["Ja!", "Nee", "Bijna"]}
         ];
 
         function show() {
@@ -52,40 +63,28 @@
                 document.getElementById('f-box').classList.remove('hidden'); 
                 return; 
             }
-            document.getElementById('q-num').innerText = `Vraag ${idx + 1} / 10`;
+            document.getElementById('q-num').innerText = `Vraag ${idx + 1} / ${qs.length}`;
             document.getElementById('q-txt').innerText = qs[idx].q;
-            const div = document.getElementById('opts'); 
-            div.innerHTML = '';
-            
+            const div = document.getElementById('opts'); div.innerHTML = '';
             qs[idx].a.forEach(opt => {
                 const b = document.createElement('button');
-                b.className = 'opt';
-                b.innerText = opt;
+                b.className = 'opt'; b.innerText = opt;
                 b.onclick = () => next(opt);
                 div.appendChild(b);
             });
         }
 
         async function next(ans) {
-            // INSERT in plaats van UPSERT voor geschiedenis
-            await supabaseClient.from('spelers').insert([{
-                naam: naam, 
-                vraag_nr: idx + 1, 
-                laatste_antwoord: ans
-            }]);
-
-            idx++; 
-            show();
+            await supabaseClient.from('spelers').insert([{naam: naam, vraag_nr: idx + 1, laatste_antwoord: ans}]);
+            idx++; show();
         }
 
         async function sendMsg() {
             const m = document.getElementById('msg').value;
             if(!m) return;
             await supabaseClient.from('reacties').insert([{naam: naam, bericht: m}]);
-            alert('Je bericht staat op de muur!');
-            window.location.href = 'index.html';
+            window.location.href = 'reacties.html';
         }
-
         show();
     </script>
 </body>
