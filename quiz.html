@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Paasquiz 2026 - 10 Vragen</title>
+    <title>Paasquiz 2026 - Start!</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { background: #fff9c4; font-family: 'Segoe UI', sans-serif; padding: 20px; display: flex; justify-content: center; }
@@ -23,7 +23,7 @@
 
     <div class="card hidden" id="f-box">
         <h2>Goed gedaan! 🐣</h2>
-        <p>Je bent klaar met de 10 vragen. Laat een leuk berichtje achter voor de familie:</p>
+        <p>Je bent klaar! Laat een berichtje achter op de Paasmuur:</p>
         <textarea id="msg" rows="4" placeholder="Typ hier je paaswens..."></textarea>
         <button id="send-btn" onclick="sendMsg()">Verstuur naar de muur</button>
     </div>
@@ -67,12 +67,12 @@
         }
 
         async function next(ans) {
-            // Sla voortgang op in de database
-            await supabaseClient.from('spelers').upsert({
+            // INSERT in plaats van UPSERT voor geschiedenis
+            await supabaseClient.from('spelers').insert([{
                 naam: naam, 
                 vraag_nr: idx + 1, 
                 laatste_antwoord: ans
-            }, {onConflict: 'naam'});
+            }]);
 
             idx++; 
             show();
@@ -82,7 +82,7 @@
             const m = document.getElementById('msg').value;
             if(!m) return;
             await supabaseClient.from('reacties').insert([{naam: naam, bericht: m}]);
-            alert('Je bericht staat op de muur! Vrolijk Pasen!');
+            alert('Je bericht staat op de muur!');
             window.location.href = 'index.html';
         }
 
