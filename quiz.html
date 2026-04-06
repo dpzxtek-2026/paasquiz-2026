@@ -3,150 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>👑 PAAS-REGIE 2026</title>
+    <title>De Grote Paasquiz 🐣</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; margin: 0; }
-        .container { max-width: 900px; margin: auto; }
-        
-        /* Header & Regie-box */
-        .card { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .regie-box { display: flex; gap: 10px; margin-top: 15px; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: none; font-size: 1rem; }
-        
-        /* Knoppen */
-        .btn-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
-        .btn-green { background: #10b981; }
-        .btn-orange { background: #f59e0b; }
-        .btn-red { background: #ef4444; }
-        .btn:hover { opacity: 0.8; transform: translateY(-2px); }
-
-        /* Speler Kaarten */
-        .player-card { background: #1e293b; margin-bottom: 10px; border-radius: 10px; border: 1px solid #334155; overflow: hidden; }
-        .player-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #2d3748; }
-        .player-header:hover { background: #3d4a5d; }
-        .player-name { color: #fbbf24; font-weight: bold; font-size: 1.1rem; }
-        
-        /* Uitklapbare details */
-        .details { display: none; padding: 10px; background: #0f172a; }
-        .ans-row { display: flex; justify-content: space-between; padding: 8px 15px; border-bottom: 1px solid #1e293b; font-size: 0.9rem; }
-        
-        .correct { color: #10b981; font-weight: bold; }
-        .wrong { color: #ef4444; font-weight: bold; }
-        #status { font-size: 0.8rem; color: #94a3b8; margin-top: 10px; text-align: center; }
+        body { background: #e0f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 25px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 5px solid #80deea; margin-top: 20px; }
+        .opt { display: block; width: 100%; padding: 15px; margin: 10px 0; background: #f1f8e9; border-radius: 15px; cursor: pointer; border: 2px solid #c5e1a5; font-size: 1.1rem; transition: 0.3s; font-weight: bold; color: #33691e; text-align: center; }
+        .opt:hover { background: #dcedc8; transform: scale(1.02); border-color: #9ccc65; }
+        .hidden { display: none; }
+        textarea { width: 100%; border-radius: 10px; padding: 10px; margin-top: 15px; border: 2px solid #80deea; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
+        #send-btn { background: #00bcd4; color: white; border: none; padding: 15px; width: 100%; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1.2rem; transition: 0.2s; }
+        #send-btn:hover { background: #00acc1; transform: translateY(-2px); }
+        .progress { font-size: 1rem; color: #00838f; font-weight: bold; margin-bottom: 15px; background: #b2ebf2; padding: 5px 15px; border-radius: 20px; display: inline-block; }
+        h2 { color: #006064; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1 style="text-align: center;">👑 Paas-Regie Dashboard</h1>
-
-        <div class="card">
-            <h3 style="margin-top: 0;">📢 Bericht naar Paasmuur (5 sec)</h3>
-            <div class="regie-box">
-                <input type="text" id="admin-msg" placeholder="Typ bijv: Nana gaat als een speer! 🚀">
-                <button class="btn btn-green" onclick="stuurBericht()">Verstuur 🚀</button>
-            </div>
-        </div>
-
-        <div class="btn-group">
-            <button class="btn btn-orange" onclick="wisMuur()">Wis Paasmuur 🧹</button>
-            <button class="btn btn-red" onclick="wisSpelers()">Wis Alle Spelers & Antwoorden 🛑</button>
-        </div>
-
-        <div id="player-list">Wachten op actieve spelers... 🐰</div>
-        
-        <div id="status">Verbinding maken met database...</div>
+    <div class="card" id="q-box">
+        <div class="progress" id="q-num">Vraag 1 / 20</div>
+        <p id="q-txt" style="font-size: 1.4rem; font-weight: bold; color: #006064; min-height: 3.5rem; display: flex; align-items: center; justify-content: center;"></p>
+        <div id="opts"></div>
     </div>
 
-    <script>
-        const client = supabase.createClient('https://bltdlfuxiboskglkmbhd.supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
-
-        // De 20 juiste antwoorden voor de vrolijke quiz
-        const correctAnswers = [
-            "Paaseieren", "Geel", "Tok Tok", "Lucht", "Huppelen", 
-            "Oranje", "Paasstol", "Schilderen", "2", "De kip",
-            "Chocolade", "Narcis", "Breekt het", "Mandje", "Vogel", 
-            "Zon", "1", "M&M's", "Ik!", "Ja!"
-        ];
-
-        async function load() {
-            const { data, error } = await client.from('spelers').select('*').order('vraag_nr', { ascending: true });
-            
-            if (error) {
-                document.getElementById('status').innerText = "Database fout: " + error.message;
-                return;
-            }
-            document.getElementById('status').innerText = "Live - Laatste update: " + new Date().toLocaleTimeString();
-
-            if (!data || data.length === 0) {
-                document.getElementById('player-list').innerHTML = "<p style='text-align:center; opacity:0.5;'>Nog geen antwoorden ontvangen.</p>";
-                return;
-            }
-
-            // Groepeer antwoorden per speler
-            const grouped = data.reduce((acc, curr) => {
-                if (!acc[curr.naam]) acc[curr.naam] = [];
-                acc[curr.naam].push(curr);
-                return acc;
-            }, {});
-
-            document.getElementById('player-list').innerHTML = Object.keys(grouped).map(name => {
-                const pData = grouped[name];
-                return `
-                    <div class="player-card">
-                        <div class="player-header" onclick="toggle('${name}')">
-                            <span><span class="player-name">${name}</span> (${pData.length}/20 vragen)</span>
-                            <span>Bekijk Alles ▼</span>
-                        </div>
-                        <div class="details" id="details-${name}">
-                            ${pData.map(d => {
-                                const isOk = correctAnswers.includes(d.laatste_antwoord);
-                                return `
-                                    <div class="ans-row">
-                                        <span>Vraag ${d.vraag_nr}: ${d.laatste_antwoord}</span>
-                                        <span class="${isOk ? 'correct' : 'wrong'}">${isOk ? '❤️' : 'X'}</span>
-                                    </div>`;
-                            }).join('')}
-                        </div>
-                    </div>`;
-            }).join('');
-        }
-
-        function toggle(id) {
-            const el = document.getElementById('details-' + id);
-            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
-        }
-
-        async function stuurBericht() {
-            const txt = document.getElementById('admin-msg').value;
-            if(!txt) return;
-            await client.from('meldingen').upsert({ id: 1, tekst: txt });
-            document.getElementById('admin-msg').value = '';
-            // Verwijder bericht na 5 seconden
-            setTimeout(async () => {
-                await client.from('meldingen').upsert({ id: 1, tekst: '' });
-            }, 5000);
-        }
-
-        async function wisSpelers() {
-            if(prompt("Typ het wachtwoord 'Pasen' om alle spelers en antwoorden te wissen:") === "Pasen") {
-                await client.from('spelers').delete().neq('id', 0);
-                location.reload();
-            }
-        }
-
-        async function wisMuur() {
-            if(prompt("Typ het wachtwoord 'Pasen' om de Paasmuur te legen:") === "Pasen") {
-                await client.from('reacties').delete().neq('id', 0);
-                alert("Paasmuur is gewist!");
-            }
-        }
-
-        // Elke 3 seconden verversen
-        setInterval(load, 3000);
-        load();
-    </script>
-</body>
-</html>
+    <div class="card hidden" id="f-box">
+        <h2>Je bent een Topper! 🌟</h2>
+        <p>Je hebt alle 20 vragen beantwoord. Wat vond je ervan? Laat een berichtje achter
