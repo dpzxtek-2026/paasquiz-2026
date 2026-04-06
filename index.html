@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Paasquiz 2026 - Start</title>
+    <style>
+        body { background: #fff9c4; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center; width: 300px; }
+        input { width: 90%; padding: 10px; margin: 20px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background: #ffb74d; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>🐣 Paasquiz 2026</h1>
+        <input type="text" id="pname" placeholder="Typ je naam...">
+        <button onclick="start()">Start de Quiz!</button>
+    </div>
+    <script>
+        function start() {
+            const n = document.getElementById('pname').value;
+            if(n) { localStorage.setItem('paasNaam', n); window.location.href='quiz.html'; }
+            else { alert('Vul eerst je naam in!'); }
+        }
+    </script>
+</body>
+</html>

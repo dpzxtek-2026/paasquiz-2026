@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Paasquiz 2026 - 10 Vragen</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background: #fff9c4; font-family: 'Segoe UI', sans-serif; padding: 20px; display: flex; justify-content: center; }
+        .card { background: white; padding: 2rem; border-radius: 20px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .opt { display: block; width: 100%; padding: 12px; margin: 10px 0; background: #f8f9fa; border-radius: 10px; cursor: pointer; border: 2px solid #eee; font-size: 1.1rem; transition: 0.2s; }
+        .opt:hover { background: #ffe082; border-color: #ffb74d; }
+        .hidden { display: none; }
+        textarea { width: 100%; border-radius: 10px; padding: 10px; margin-top: 15px; border: 1px solid #ccc; box-sizing: border-box; }
+        button#send-btn { background: #ffb74d; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="card" id="q-box">
+        <h2 id="q-num">Vraag 1 / 10</h2>
+        <p id="q-txt" style="font-size: 1.2rem; font-weight: bold;"></p>
+        <div id="opts"></div>
+    </div>
+
+    <div class="card hidden" id="f-box">
+        <h2>Goed gedaan! 🐣</h2>
+        <p>Je bent klaar met de 10 vragen. Laat een leuk berichtje achter voor de familie:</p>
+        <textarea id="msg" rows="4" placeholder="Typ hier je paaswens..."></textarea>
+        <button id="send-btn" onclick="sendMsg()">Verstuur naar de muur</button>
+    </div>
+
+    <script>
+        const supabaseClient = supabase.createClient('https://bltdlfuxiboskglkmbhd.supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
+        const naam = localStorage.getItem('paasNaam') || 'Anoniem';
+        let idx = 0;
+
+        const qs = [
+            {q: "Wat verstopt de Paashaas?", a: ["Paaseieren", "Paasbrood", "Paassokken"]},
+            {q: "Welke kleur hebben de meeste kuikentjes?", a: ["Blauw", "Geel", "Groen"]},
+            {q: "Waar wordt een paasvuur meestal van gemaakt?", a: ["Plastic", "Snoep", "Snoeihout"]},
+            {q: "Hoe noemen we een ei dat niet van chocolade is?", a: ["Een nepeitje", "Een kippenei", "Een kwartelei"]},
+            {q: "Wat eten veel mensen bij het paasontbijt?", a: ["Oliebollen", "Paasstol", "Stamppot"]},
+            {q: "Welk dier legt de eieren die we eten?", a: ["De haas", "De kip", "De eend"]},
+            {q: "Welk seizoen begint rond Pasen?", a: ["De herfst", "De winter", "De lente"]},
+            {q: "Wat doen kinderen vaak met eieren?", a: ["Voetballen", "Schilderen", "Opsturen"]},
+            {q: "Hoe heet de dag vóór Pasen?", a: ["Stille Zaterdag", "Lawaai Zaterdag", "Luie Zaterdag"]},
+            {q: "Wie komt er gezellig op bezoek tijdens dit spel?", a: ["De Kerstman", "De Paashaas", "Sinterklaas"]}
+        ];
+
+        function show() {
+            if(idx >= qs.length) { 
+                document.getElementById('q-box').classList.add('hidden'); 
+                document.getElementById('f-box').classList.remove('hidden'); 
+                return; 
+            }
+            document.getElementById('q-num').innerText = `Vraag ${idx + 1} / 10`;
+            document.getElementById('q-txt').innerText = qs[idx].q;
+            const div = document.getElementById('opts'); 
+            div.innerHTML = '';
+            
+            qs[idx].a.forEach(opt => {
+                const b = document.createElement('button');
+                b.className = 'opt';
+                b.innerText = opt;
+                b.onclick = () => next(opt);
+                div.appendChild(b);
+            });
+        }
+
+        async function next(ans) {
+            // Sla voortgang op in de database
+            await supabaseClient.from('spelers').upsert({
+                naam: naam, 
+                vraag_nr: idx + 1, 
+                laatste_antwoord: ans
+            }, {onConflict: 'naam'});
+
+            idx++; 
+            show();
+        }
+
+        async function sendMsg() {
+            const m = document.getElementById('msg').value;
+            if(!m) return;
+            await supabaseClient.from('reacties').insert([{naam: naam, bericht: m}]);
+            alert('Je bericht staat op de muur! Vrolijk Pasen!');
+            window.location.href = 'index.html';
+        }
+
+        show();
+    </script>
+</body>
+</html>

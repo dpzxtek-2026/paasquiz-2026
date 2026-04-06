@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Paasmuur 2026</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background: #fff9c4; font-family: 'Comic Sans MS', cursive; text-align: center; padding: 20px; }
+        h1 { color: #f57c00; font-size: 2.5rem; text-shadow: 2px 2px white; }
+        #wall { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 30px; }
+        .note { 
+            background: white; padding: 20px; border-radius: 15px; border: 3px solid #ffb74d; 
+            width: 250px; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); 
+            animation: bounceIn 0.6s ease; position: relative;
+        }
+        .note b { color: #e65100; font-size: 1.3rem; display: block; border-bottom: 2px dashed #ffb74d; margin-bottom: 10px; }
+        .note p { font-size: 1.1rem; color: #5d4037; margin: 0; }
+        
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <h1>🐣 De Live Paasmuur 🐰</h1>
+    <p>Berichtjes van de familie verschijnen hieronder live!</p>
+    <div id="wall"></div>
+
+    <script>
+        const supabaseClient = supabase.createClient('https://bltdlfuxiboskglkmbhd.supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
+        
+        async function load() {
+            const {data} = await supabaseClient
+                .from('reacties')
+                .select('*')
+                .order('id', {ascending: false});
+
+            if(data) {
+                const wall = document.getElementById('wall');
+                wall.innerHTML = data.map(r => `
+                    <div class="note">
+                        <b>${r.naam}</b>
+                        <p>"${r.bericht}"</p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Check elke 3 seconden op nieuwe berichten
+        setInterval(load, 3000); 
+        load(); // Laad direct bij openen
+    </script>
+</body>
+</html>

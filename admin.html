@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background: #0f172a; color: white; font-family: sans-serif; padding: 40px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid #334155; text-align: left; }
+        .reset { background: #ef4444; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 5px; float: right; }
+    </style>
+</head>
+<body>
+    <input type="password" id="pw" placeholder="Wachtwoord (1234)" oninput="if(this.value==='1234') document.getElementById('main').style.display='block'">
+    <div id="main" style="display:none">
+        <button class="reset" onclick="resetData()">RESET ALLES</button>
+        <h1>Live Monitor</h1>
+        <table>
+            <thead><tr><th>Naam</th><th>Vraag</th><th>Antwoord</th></tr></thead>
+            <tbody id="tb"></tbody>
+        </table>
+    </div>
+    <script>
+        const supabaseClient = supabase.createClient('https://bltdlfuxiboskglkmbhd.supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
+        async function load() {
+            const {data} = await supabaseClient.from('spelers').select('*').order('updated_at', {ascending:false});
+            if(data) document.getElementById('tb').innerHTML = data.map(p => `<tr><td>${p.naam}</td><td>${p.vraag_nr}</td><td>${p.laatste_antwoord}</td></tr>`).join('');
+        }
+        async function resetData() {
+            if(confirm('Alles wissen?')) {
+                await supabaseClient.from('spelers').delete().neq('naam', 'x');
+                await supabaseClient.from('reacties').delete().neq('id', 0);
+            }
+        }
+        setInterval(load, 2000);
+    </script>
+</body>
+</html>
