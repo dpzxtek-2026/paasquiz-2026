@@ -2,60 +2,90 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>👑 PAAS-REGIE 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; padding: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px; }
+        body { background: #0f172a; color: white; font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; margin: 0; }
+        .container { max-width: 900px; margin: auto; }
         
-        /* Regie Sectie */
-        .regie-box { display: flex; gap: 10px; margin-top: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: none; }
+        /* Header & Regie-box */
+        .card { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid #334155; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .regie-box { display: flex; gap: 10px; margin-top: 15px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: none; font-size: 1rem; }
         
         /* Knoppen */
-        .btn { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
         .btn-green { background: #10b981; }
         .btn-orange { background: #f59e0b; }
         .btn-red { background: #ef4444; }
+        .btn:hover { opacity: 0.8; transform: translateY(-2px); }
 
-        /* Speler Lijst */
-        .player-card { background: #1e293b; margin-bottom: 8px; border-radius: 8px; border: 1px solid #334155; overflow: hidden; }
-        .player-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; background: #2d3748; }
-        .details { display: none; padding: 10px; background: #111827; font-size: 0.9rem; }
-        .ans-row { display: flex; justify-content: space-between; padding: 5px 10px; border-bottom: 1px solid #1f2937; }
-        .correct { color: #10b981; } .wrong { color: #ef4444; }
+        /* Speler Kaarten */
+        .player-card { background: #1e293b; margin-bottom: 10px; border-radius: 10px; border: 1px solid #334155; overflow: hidden; }
+        .player-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #2d3748; }
+        .player-header:hover { background: #3d4a5d; }
+        .player-name { color: #fbbf24; font-weight: bold; font-size: 1.1rem; }
+        
+        /* Uitklapbare details */
+        .details { display: none; padding: 10px; background: #0f172a; }
+        .ans-row { display: flex; justify-content: space-between; padding: 8px 15px; border-bottom: 1px solid #1e293b; font-size: 0.9rem; }
+        
+        .correct { color: #10b981; font-weight: bold; }
+        .wrong { color: #ef4444; font-weight: bold; }
+        #status { font-size: 0.8rem; color: #94a3b8; margin-top: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>👑 Paas-Regie 2026</h1>
+        <h1 style="text-align: center;">👑 Paas-Regie Dashboard</h1>
 
         <div class="card">
-            <h3>📢 Bericht naar Paasmuur (5 sec)</h3>
+            <h3 style="margin-top: 0;">📢 Bericht naar Paasmuur (5 sec)</h3>
             <div class="regie-box">
-                <input type="text" id="admin-msg" placeholder="Typ bijv: Nana gaat aan kop! 🐣">
-                <button class="btn btn-green" onclick="stuurBericht()">Stuur 🚀</button>
+                <input type="text" id="admin-msg" placeholder="Typ bijv: Nana gaat als een speer! 🚀">
+                <button class="btn btn-green" onclick="stuurBericht()">Verstuur 🚀</button>
             </div>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <div class="btn-group">
             <button class="btn btn-orange" onclick="wisMuur()">Wis Paasmuur 🧹</button>
-            <button class="btn btn-red" onclick="wisSpelers()">Wis Alle Spelers 🛑</button>
+            <button class="btn btn-red" onclick="wisSpelers()">Wis Alle Spelers & Antwoorden 🛑</button>
         </div>
 
-        <div id="player-list">Laden...</div>
+        <div id="player-list">Wachten op actieve spelers... 🐰</div>
+        
+        <div id="status">Verbinding maken met database...</div>
     </div>
 
     <script>
         const client = supabase.createClient('https://bltdlfuxiboskglkmbhd.supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
-        const correctAnswers = ["Paaseieren", "Geel", "Snoeihout", "Een kippenei", "Paasstol", "De kip", "De lente", "Schilderen", "Stille Zaterdag", "De Paashaas"];
+
+        // De 20 juiste antwoorden voor de vrolijke quiz
+        const correctAnswers = [
+            "Paaseieren", "Geel", "Tok Tok", "Lucht", "Huppelen", 
+            "Oranje", "Paasstol", "Schilderen", "2", "De kip",
+            "Chocolade", "Narcis", "Breekt het", "Mandje", "Vogel", 
+            "Zon", "1", "M&M's", "Ik!", "Ja!"
+        ];
 
         async function load() {
-            const { data } = await client.from('spelers').select('*').order('vraag_nr', { ascending: true });
-            if (!data) return;
+            const { data, error } = await client.from('spelers').select('*').order('vraag_nr', { ascending: true });
+            
+            if (error) {
+                document.getElementById('status').innerText = "Database fout: " + error.message;
+                return;
+            }
+            document.getElementById('status').innerText = "Live - Laatste update: " + new Date().toLocaleTimeString();
 
+            if (!data || data.length === 0) {
+                document.getElementById('player-list').innerHTML = "<p style='text-align:center; opacity:0.5;'>Nog geen antwoorden ontvangen.</p>";
+                return;
+            }
+
+            // Groepeer antwoorden per speler
             const grouped = data.reduce((acc, curr) => {
                 if (!acc[curr.naam]) acc[curr.naam] = [];
                 acc[curr.naam].push(curr);
@@ -67,28 +97,21 @@
                 return `
                     <div class="player-card">
                         <div class="player-header" onclick="toggle('${name}')">
-                            <span><b>${name}</b> (${pData.length}/10)</span>
-                            <span>Geschiedenis ▼</span>
+                            <span><span class="player-name">${name}</span> (${pData.length}/20 vragen)</span>
+                            <span>Bekijk Alles ▼</span>
                         </div>
                         <div class="details" id="details-${name}">
                             ${pData.map(d => {
                                 const isOk = correctAnswers.includes(d.laatste_antwoord);
-                                return `<div class="ans-row">
-                                    <span>Vraag ${d.vraag_nr}: ${d.laatste_antwoord}</span>
-                                    <span class="${isOk ? 'correct' : 'wrong'}">${isOk ? '❤️' : 'X'}</span>
-                                </div>`;
+                                return `
+                                    <div class="ans-row">
+                                        <span>Vraag ${d.vraag_nr}: ${d.laatste_antwoord}</span>
+                                        <span class="${isOk ? 'correct' : 'wrong'}">${isOk ? '❤️' : 'X'}</span>
+                                    </div>`;
                             }).join('')}
                         </div>
                     </div>`;
             }).join('');
-        }
-
-        async function stuurBericht() {
-            const txt = document.getElementById('admin-msg').value;
-            if(!txt) return;
-            await client.from('meldingen').upsert({ id: 1, tekst: txt });
-            document.getElementById('admin-msg').value = '';
-            setTimeout(async () => { await client.from('meldingen').upsert({ id: 1, tekst: '' }); }, 5000);
         }
 
         function toggle(id) {
@@ -96,9 +119,32 @@
             el.style.display = (el.style.display === 'block') ? 'none' : 'block';
         }
 
-        async function wisSpelers() { if(prompt("Wachtwoord 'Pasen':") === "Pasen") await client.from('spelers').delete().neq('id', 0); location.reload(); }
-        async function wisMuur() { if(prompt("Wachtwoord 'Pasen':") === "Pasen") await client.from('reacties').delete().neq('id', 0); alert("Muur gewist!"); }
+        async function stuurBericht() {
+            const txt = document.getElementById('admin-msg').value;
+            if(!txt) return;
+            await client.from('meldingen').upsert({ id: 1, tekst: txt });
+            document.getElementById('admin-msg').value = '';
+            // Verwijder bericht na 5 seconden
+            setTimeout(async () => {
+                await client.from('meldingen').upsert({ id: 1, tekst: '' });
+            }, 5000);
+        }
 
+        async function wisSpelers() {
+            if(prompt("Typ het wachtwoord 'Pasen' om alle spelers en antwoorden te wissen:") === "Pasen") {
+                await client.from('spelers').delete().neq('id', 0);
+                location.reload();
+            }
+        }
+
+        async function wisMuur() {
+            if(prompt("Typ het wachtwoord 'Pasen' om de Paasmuur te legen:") === "Pasen") {
+                await client.from('reacties').delete().neq('id', 0);
+                alert("Paasmuur is gewist!");
+            }
+        }
+
+        // Elke 3 seconden verversen
         setInterval(load, 3000);
         load();
     </script>
