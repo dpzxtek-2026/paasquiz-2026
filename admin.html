@@ -2,59 +2,87 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>👑 PAAS-CONTROLEKAMER 2026</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👑 PAAS-REGIE 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .admin-container { max-width: 1000px; margin: auto; }
-        
-        /* Dashboard Knoppen */
-        .button-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-msg { background: #10b981; color: white; } /* Groen */
-        .btn-clear { background: #ef4444; color: white; } /* Rood */
-        .btn-win { background: #f59e0b; color: white; } /* Oranje/Goud */
-        .btn:hover { opacity: 0.8; transform: translateY(-2px); }
+        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; }
 
-        /* De Tabel */
-        .card { background: #1e293b; border-radius: 15px; padding: 20px; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; color: #94a3b8; border-bottom: 2px solid #334155; padding: 15px; font-size: 0.75rem; text-transform: uppercase; }
+        /* Knoppen Sectie */
+        .admin-actions { 
+            background: #1e293b; 
+            padding: 20px; 
+            border-radius: 15px; 
+            margin-bottom: 25px; 
+            border: 2px solid #334155;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn { 
+            padding: 12px 20px; 
+            border: none; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .btn-green { background: #10b981; color: white; }
+        .btn-gold { background: #f59e0b; color: white; }
+        .btn-red { background: #ef4444; color: white; }
+        .btn-black { background: #000000; color: #ef4444; border: 1px solid #ef4444; }
+
+        .btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+
+        /* Tabel Design */
+        .data-card { background: #1e293b; border-radius: 15px; padding: 15px; border: 1px solid #334155; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; color: #94a3b8; border-bottom: 2px solid #334155; font-size: 0.8rem; text-transform: uppercase; }
         td { padding: 15px; border-bottom: 1px solid #334155; }
-        
-        .name { color: #fbbf24; font-weight: bold; font-size: 1.1rem; }
-        .correct { color: #10b981; font-weight: bold; } /* Groen hartje */
-        .wrong { color: #ef4444; font-weight: bold; } /* Rood kruis */
-        
-        /* Melding animatie */
-        #alert-box { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #fbbf24; color: #000; padding: 15px 30px; border-radius: 50px; font-weight: bold; display: none; z-index: 1000; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+
+        .p-name { color: #fbbf24; font-weight: bold; }
+        .p-status-win { color: #10b981; font-weight: bold; }
+        .p-status-lose { color: #ef4444; font-weight: bold; }
+
+        /* Pop-up melding */
+        #status-alert {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            padding: 15px 30px; border-radius: 30px; background: #fbbf24; color: black;
+            font-weight: bold; display: none; z-index: 10000; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
 
-    <div id="alert-box">Lekker bezig! 🐣</div>
+    <div id="status-alert"></div>
 
-    <div class="admin-container">
-        <h1>👑 Paasquiz Regiekamer</h1>
-        
-        <div class="button-bar">
-            <button class="btn btn-msg" onclick="showAlert('Lekker bezig! 🐣')">Lekker bezig! 🐣</button>
-            <button class="btn btn-win" onclick="showAlert('Gefeliciteerd! Jij bent de Paaskoning! ❤️')">Winnaar ❤️</button>
-            <button class="btn btn-clear" onclick="clearWall()">Wis Paasmuur 🧹</button>
+    <div class="container">
+        <h1 style="text-align:center;">🐣 Paas-Regie Dashboard 👑</h1>
+
+        <div class="admin-actions">
+            <button class="btn btn-green" onclick="showMsg('Lekker bezig! 🐣')">Lekker bezig! 🐣</button>
+            <button class="btn btn-gold" onclick="showMsg('❤️ GEWONNEN! ❤️')">Winnaar ❤️</button>
+            <button class="btn btn-red" onclick="clearWall()">Wis Paasmuur 🧹</button>
+            <button class="btn btn-black" onclick="clearAnswers()">Wis Antwoorden 🛑</button>
         </div>
 
-        <div class="card">
+        <div class="data-card">
             <table>
                 <thead>
                     <tr>
                         <th>Speler</th>
                         <th>Vraag</th>
                         <th>Antwoord</th>
-                        <th>Status</th>
+                        <th>Score</th>
                     </tr>
                 </thead>
-                <tbody id="data-table">
-                    <tr><td colspan="4" style="text-align:center;">Wachten op actie...</td></tr>
+                <tbody id="player-list">
+                    <tr><td colspan="4" style="text-align:center;">Geen actieve spelers...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -63,10 +91,65 @@
     <script>
         const client = supabase.createClient('https://bltdlfuxiboskglkmbhd.supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
 
-        // De juiste antwoorden om te checken (moet matchen met je quiz.html)
-        const correctAnswers = [
-            "Paaseieren", "Geel", "Snoeihout", "Een kippenei", "Paasstol", 
-            "De kip", "De lente", "Schilderen", "Stille Zaterdag", "De Paashaas"
-        ];
+        const goeieAntwoorden = ["Paaseieren", "Geel", "Snoeihout", "Een kippenei", "Paasstol", "De kip", "De lente", "Schilderen", "Stille Zaterdag", "De Paashaas"];
 
-        async function refreshData
+        async function refresh() {
+            const { data, error } = await client.from('spelers').select('*').order('updated_at', { ascending: false });
+            if (error) return;
+
+            if (data) {
+                const tbody = document.getElementById('player-list');
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Geen actieve spelers...</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.map(p => {
+                    const isGoed = goeieAntwoorden.includes(p.laatste_antwoord);
+                    const status = isGoed ? '<span class="p-status-win">❤️</span>' : '<span class="p-status-lose">X</span>';
+                    
+                    return `
+                        <tr>
+                            <td class="p-name">${p.naam}</td>
+                            <td>Vraag ${p.vraag_nr}</td>
+                            <td>${p.laatste_antwoord || '-'}</td>
+                            <td>${status}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function showMsg(txt) {
+            const el = document.getElementById('status-alert');
+            el.innerText = txt;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        async function clearWall() {
+            if(confirm("Alle berichtjes op de muur wissen?")) {
+                await client.from('reacties').delete().neq('id', 0);
+                showMsg("Muur gewist! 🧹");
+            }
+        }
+
+        async function clearAnswers() {
+            const pw = prompt("Typ het wachtwoord om ALLE spelers en antwoorden te wissen:");
+            if (pw === "Pasen") {
+                const { error } = await client.from('spelers').delete().neq('naam', 'placeholder_dummy');
+                if (!error) {
+                    showMsg("Database is weer leeg! 🛑");
+                    document.getElementById('player-list').innerHTML = '<tr><td colspan="4" style="text-align:center;">Geen actieve spelers...</td></tr>';
+                } else {
+                    alert("Fout bij wissen: " + error.message);
+                }
+            } else if (pw !== null) {
+                alert("Fout wachtwoord!");
+            }
+        }
+
+        setInterval(refresh, 2000);
+        refresh();
+    </script>
+</body>
+</html>
