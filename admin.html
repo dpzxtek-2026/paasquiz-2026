@@ -2,37 +2,43 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>LIVE MONITOR - Paasquiz</title>
+    <title>LIVE MONITOR - Paasquiz 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; padding: 20px; }
-        .monitor-card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; color: #94a3b8; border-bottom: 2px solid #334155; padding: 10px; }
-        td { padding: 10px; border-bottom: 1px solid #334155; }
-        .highlight { color: #fbbf24; font-weight: bold; }
-        .error-msg { color: #ef4444; background: #451a1a; padding: 10px; border-radius: 5px; display: none; }
+        body { background: #0f172a; color: white; font-family: sans-serif; padding: 20px; text-align: center; }
+        .monitor-card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; max-width: 900px; margin: auto; text-align: left; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 1.1rem; }
+        th { text-align: left; color: #94a3b8; border-bottom: 2px solid #334155; padding: 15px; text-transform: uppercase; font-size: 0.8rem; }
+        td { padding: 15px; border-bottom: 1px solid #334155; }
+        .highlight { color: #fbbf24; font-weight: bold; font-size: 1.2rem; }
+        .status-dot { height: 10px; width: 10px; background-color: #10b981; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
+
     <div class="monitor-card">
-        <h1>🐣 Live Paasquiz Monitor 2026</h1>
-        <div id="error-box" class="error-msg"></div>
+        <div class="header-flex">
+            <h1>🐣 Live Paas-Monitor</h1>
+            <div id="live-indicator"><span class="status-dot"></span> LIVE</div>
+        </div>
+        
         <table>
             <thead>
                 <tr>
                     <th>Speler</th>
-                    <th>Vraag</th>
-                    <th>Antwoord</th>
+                    <th>Voortgang</th>
+                    <th>Laatste Antwoord</th>
                 </tr>
             </thead>
             <tbody id="data-table">
-                <tr><td colspan="3">Wachten op actieve spelers...</td></tr>
+                <tr><td colspan="3" style="text-align:center; padding:40px;">Wachten op eerste speler... 🐰</td></tr>
             </tbody>
         </table>
     </div>
 
     <script>
+        // Directe verbinding zonder gedoe
         const client = supabase.createClient('https://bltdlfuxiboskglkmbhd.supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
 
         async function refreshData() {
@@ -42,25 +48,25 @@
                 .order('updated_at', { ascending: false });
 
             if (error) {
-                const box = document.getElementById('error-box');
-                box.style.display = 'block';
-                box.innerText = "Database Fout: " + error.message;
+                console.error("Databasefout:", error.message);
                 return;
             }
 
             if (data && data.length > 0) {
-                document.getElementById('data-table').innerHTML = data.map(row => `
+                const tableBody = document.getElementById('data-table');
+                tableBody.innerHTML = data.map(row => `
                     <tr>
                         <td class="highlight">${row.naam}</td>
-                        <td>${row.vraag_nr} / 10</td>
-                        <td>${row.laatste_antwoord || 'Bezig...'}</td>
+                        <td><b>${row.vraag_nr}</b> / 10</td>
+                        <td style="color: #cbd5e1;">${row.laatste_antwoord || '...'}</td>
                     </tr>
                 `).join('');
             }
         }
 
-        // Start direct en ververs elke 2 seconden
+        // Start de monitor direct
         refreshData();
+        // Ververs elke 2 seconden voor echte live-ervaring
         setInterval(refreshData, 2000);
     </script>
 </body>
