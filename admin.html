@@ -7,31 +7,45 @@
     <style>
         body { background: #0f172a; color: white; font-family: sans-serif; padding: 20px; }
         .container { max-width: 800px; margin: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px; }
         
-        .player-card { background: #1e293b; margin-bottom: 10px; border-radius: 10px; border: 1px solid #334155; overflow: hidden; }
-        .player-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; background: #2d3748; }
-        .player-header:hover { background: #3d4a5d; }
-        .player-name { color: #fbbf24; font-weight: bold; font-size: 1.1rem; }
+        /* Regie Sectie */
+        .regie-box { display: flex; gap: 10px; margin-top: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: none; }
         
-        .details { display: none; padding: 10px; background: #111827; }
-        .ans-row { display: flex; justify-content: space-between; padding: 8px 15px; border-bottom: 1px solid #1f2937; }
-        
-        .correct { color: #10b981; font-weight: bold; }
-        .wrong { color: #ef4444; font-weight: bold; }
-        
-        .btn-clear { background: #ef4444; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        /* Knoppen */
+        .btn { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-green { background: #10b981; }
+        .btn-orange { background: #f59e0b; }
+        .btn-red { background: #ef4444; }
+
+        /* Speler Lijst */
+        .player-card { background: #1e293b; margin-bottom: 8px; border-radius: 8px; border: 1px solid #334155; overflow: hidden; }
+        .player-header { padding: 12px; cursor: pointer; display: flex; justify-content: space-between; background: #2d3748; }
+        .details { display: none; padding: 10px; background: #111827; font-size: 0.9rem; }
+        .ans-row { display: flex; justify-content: space-between; padding: 5px 10px; border-bottom: 1px solid #1f2937; }
+        .correct { color: #10b981; } .wrong { color: #ef4444; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="header">
-            <h1>🐣 Live Monitor (Klik op naam)</h1>
-            <button class="btn-clear" onclick="clearData()">Wis Antwoorden 🛑</button>
+        <h1>👑 Paas-Regie 2026</h1>
+
+        <div class="card">
+            <h3>📢 Bericht naar Paasmuur (5 sec)</h3>
+            <div class="regie-box">
+                <input type="text" id="admin-msg" placeholder="Typ bijv: Nana gaat aan kop! 🐣">
+                <button class="btn btn-green" onclick="stuurBericht()">Stuur 🚀</button>
+            </div>
         </div>
 
-        <div id="player-list">Laden... 🐰</div>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button class="btn btn-orange" onclick="wisMuur()">Wis Paasmuur 🧹</button>
+            <button class="btn btn-red" onclick="wisSpelers()">Wis Alle Spelers 🛑</button>
+        </div>
+
+        <div id="player-list">Laden...</div>
     </div>
 
     <script>
@@ -39,42 +53,42 @@
         const correctAnswers = ["Paaseieren", "Geel", "Snoeihout", "Een kippenei", "Paasstol", "De kip", "De lente", "Schilderen", "Stille Zaterdag", "De Paashaas"];
 
         async function load() {
-            const { data, error } = await client.from('spelers').select('*').order('vraag_nr', { ascending: true });
-            if (error || !data) return;
+            const { data } = await client.from('spelers').select('*').order('vraag_nr', { ascending: true });
+            if (!data) return;
 
-            // Groepeer alle antwoorden per speler-naam
             const grouped = data.reduce((acc, curr) => {
                 if (!acc[curr.naam]) acc[curr.naam] = [];
                 acc[curr.naam].push(curr);
                 return acc;
             }, {});
 
-            const listDiv = document.getElementById('player-list');
-            listDiv.innerHTML = Object.keys(grouped).map(name => {
+            document.getElementById('player-list').innerHTML = Object.keys(grouped).map(name => {
                 const pData = grouped[name];
-                const lastIdx = pData.length - 1;
-                const lastIsCorrect = correctAnswers.includes(pData[lastIdx].laatste_antwoord);
-
                 return `
                     <div class="player-card">
                         <div class="player-header" onclick="toggle('${name}')">
-                            <span><span class="player-name">${name}</span> (${pData.length}/10)</span>
-                            <span>${lastIsCorrect ? '❤️' : 'X'} ▼</span>
+                            <span><b>${name}</b> (${pData.length}/10)</span>
+                            <span>Geschiedenis ▼</span>
                         </div>
                         <div class="details" id="details-${name}">
                             ${pData.map(d => {
                                 const isOk = correctAnswers.includes(d.laatste_antwoord);
-                                return `
-                                    <div class="ans-row">
-                                        <span>Vraag ${d.vraag_nr}: ${d.laatste_antwoord}</span>
-                                        <span class="${isOk ? 'correct' : 'wrong'}">${isOk ? '❤️' : 'X'}</span>
-                                    </div>
-                                `;
+                                return `<div class="ans-row">
+                                    <span>Vraag ${d.vraag_nr}: ${d.laatste_antwoord}</span>
+                                    <span class="${isOk ? 'correct' : 'wrong'}">${isOk ? '❤️' : 'X'}</span>
+                                </div>`;
                             }).join('')}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
+        }
+
+        async function stuurBericht() {
+            const txt = document.getElementById('admin-msg').value;
+            if(!txt) return;
+            await client.from('meldingen').upsert({ id: 1, tekst: txt });
+            document.getElementById('admin-msg').value = '';
+            setTimeout(async () => { await client.from('meldingen').upsert({ id: 1, tekst: '' }); }, 5000);
         }
 
         function toggle(id) {
@@ -82,12 +96,8 @@
             el.style.display = (el.style.display === 'block') ? 'none' : 'block';
         }
 
-        async function clearData() {
-            if(prompt("Wachtwoord 'Pasen' om alles te wissen:") === "Pasen") {
-                await client.from('spelers').delete().neq('id', 0);
-                location.reload();
-            }
-        }
+        async function wisSpelers() { if(prompt("Wachtwoord 'Pasen':") === "Pasen") await client.from('spelers').delete().neq('id', 0); location.reload(); }
+        async function wisMuur() { if(prompt("Wachtwoord 'Pasen':") === "Pasen") await client.from('reacties').delete().neq('id', 0); alert("Muur gewist!"); }
 
         setInterval(load, 3000);
         load();
