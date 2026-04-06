@@ -6,150 +6,113 @@
     <title>👑 PAAS-REGIE 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; }
-
-        /* Knoppen Sectie */
-        .admin-actions { 
+        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        /* Speler Kaart */
+        .player-card { 
             background: #1e293b; 
-            padding: 20px; 
-            border-radius: 15px; 
-            margin-bottom: 25px; 
-            border: 2px solid #334155;
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn { 
-            padding: 12px 20px; 
-            border: none; 
+            margin-bottom: 10px; 
             border-radius: 10px; 
-            font-weight: bold; 
+            border: 1px solid #334155; 
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        .player-header { 
+            padding: 15px; 
             cursor: pointer; 
-            transition: 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            background: #2d3748;
         }
-
-        .btn-green { background: #10b981; color: white; }
-        .btn-gold { background: #f59e0b; color: white; }
-        .btn-red { background: #ef4444; color: white; }
-        .btn-black { background: #000000; color: #ef4444; border: 1px solid #ef4444; }
-
-        .btn:hover { transform: scale(1.05); filter: brightness(1.1); }
-
-        /* Tabel Design */
-        .data-card { background: #1e293b; border-radius: 15px; padding: 15px; border: 1px solid #334155; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 15px; color: #94a3b8; border-bottom: 2px solid #334155; font-size: 0.8rem; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid #334155; }
-
-        .p-name { color: #fbbf24; font-weight: bold; }
-        .p-status-win { color: #10b981; font-weight: bold; }
-        .p-status-lose { color: #ef4444; font-weight: bold; }
-
-        /* Pop-up melding */
-        #status-alert {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            padding: 15px 30px; border-radius: 30px; background: #fbbf24; color: black;
-            font-weight: bold; display: none; z-index: 10000; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-        }
+        .player-header:hover { background: #3d4a5d; }
+        .player-name { color: #fbbf24; font-weight: bold; font-size: 1.1rem; }
+        
+        /* Detail Lijst (verborgen tot klik) */
+        .details { display: none; padding: 15px; background: #1a202c; border-top: 1px solid #334155; }
+        .detail-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #2d3748; font-size: 0.9rem; }
+        
+        .correct { color: #10b981; font-weight: bold; }
+        .wrong { color: #ef4444; font-weight: bold; }
+        
+        .btn-clear { background: none; border: 1px solid #ef4444; color: #ef4444; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .btn-clear:hover { background: #ef4444; color: white; }
     </style>
 </head>
 <body>
 
-    <div id="status-alert"></div>
-
     <div class="container">
-        <h1 style="text-align:center;">🐣 Paas-Regie Dashboard 👑</h1>
-
-        <div class="admin-actions">
-            <button class="btn btn-green" onclick="showMsg('Lekker bezig! 🐣')">Lekker bezig! 🐣</button>
-            <button class="btn btn-gold" onclick="showMsg('❤️ GEWONNEN! ❤️')">Winnaar ❤️</button>
-            <button class="btn btn-red" onclick="clearWall()">Wis Paasmuur 🧹</button>
-            <button class="btn btn-black" onclick="clearAnswers()">Wis Antwoorden 🛑</button>
+        <div class="header">
+            <h1>🐣 Live Monitor</h1>
+            <button class="btn-clear" onclick="clearData()">Wis Alles 🛑</button>
         </div>
 
-        <div class="data-card">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Speler</th>
-                        <th>Vraag</th>
-                        <th>Antwoord</th>
-                        <th>Score</th>
-                    </tr>
-                </thead>
-                <tbody id="player-list">
-                    <tr><td colspan="4" style="text-align:center;">Geen actieve spelers...</td></tr>
-                </tbody>
-            </table>
+        <div id="player-list">
+            <p style="text-align:center;">Wachten op spelers... 🐰</p>
         </div>
     </div>
 
     <script>
         const client = supabase.createClient('https://bltdlfuxiboskglkmbhd.supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
+        
+        // De juiste antwoorden ter controle
+        const answers = ["Paaseieren", "Geel", "Snoeihout", "Een kippenei", "Paasstol", "De kip", "De lente", "Schilderen", "Stille Zaterdag", "De Paashaas"];
 
-        const goeieAntwoorden = ["Paaseieren", "Geel", "Snoeihout", "Een kippenei", "Paasstol", "De kip", "De lente", "Schilderen", "Stille Zaterdag", "De Paashaas"];
-
-        async function refresh() {
+        async function load() {
             const { data, error } = await client.from('spelers').select('*').order('updated_at', { ascending: false });
             if (error) return;
 
-            if (data) {
-                const tbody = document.getElementById('player-list');
-                if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Geen actieve spelers...</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = data.map(p => {
-                    const isGoed = goeieAntwoorden.includes(p.laatste_antwoord);
-                    const status = isGoed ? '<span class="p-status-win">❤️</span>' : '<span class="p-status-lose">X</span>';
-                    
+            if (data && data.length > 0) {
+                const list = document.getElementById('player-list');
+                list.innerHTML = data.map(p => {
+                    // We gaan ervan uit dat we de voortgang bijhouden. 
+                    // Voor een complete lijst van ELK antwoord zou je een aparte tabel nodig hebben, 
+                    // maar we tonen hier het LAATSTE antwoord en de voortgang.
+                    const isCorrect = answers.includes(p.laatste_antwoord);
+                    const status = isCorrect ? '<span class="correct">❤️</span>' : '<span class="wrong">X</span>';
+
                     return `
-                        <tr>
-                            <td class="p-name">${p.naam}</td>
-                            <td>Vraag ${p.vraag_nr}</td>
-                            <td>${p.laatste_antwoord || '-'}</td>
-                            <td>${status}</td>
-                        </tr>
+                        <div class="player-card">
+                            <div class="player-header" onclick="toggle('${p.naam}')">
+                                <div>
+                                    <span class="player-name">${p.naam}</span>
+                                    <span style="margin-left:10px; opacity:0.7;">Vraag ${p.vraag_nr}/10</span>
+                                </div>
+                                <div>${status} ▼</div>
+                            </div>
+                            <div class="details" id="details-${p.naam}">
+                                <div class="detail-row">
+                                    <span>Laatste actie:</span>
+                                    <span>${new Date(p.updated_at).toLocaleTimeString()}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span>Gekozen antwoord:</span>
+                                    <span class="${isCorrect ? 'correct' : 'wrong'}">${p.laatste_antwoord || 'Geen'}</span>
+                                </div>
+                                <p style="font-size:0.8rem; opacity:0.5; margin-top:10px;">Klik nogmaals om te sluiten.</p>
+                            </div>
+                        </div>
                     `;
                 }).join('');
             }
         }
 
-        function showMsg(txt) {
-            const el = document.getElementById('status-alert');
-            el.innerText = txt;
-            el.style.display = 'block';
-            setTimeout(() => el.style.display = 'none', 3000);
+        function toggle(id) {
+            const el = document.getElementById('details-' + id);
+            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
         }
 
-        async function clearWall() {
-            if(confirm("Alle berichtjes op de muur wissen?")) {
-                await client.from('reacties').delete().neq('id', 0);
-                showMsg("Muur gewist! 🧹");
+        async function clearData() {
+            if(prompt("Typ 'Pasen' om te wissen:") === "Pasen") {
+                await client.from('spelers').delete().neq('naam', 'dummy');
+                location.reload();
             }
         }
 
-        async function clearAnswers() {
-            const pw = prompt("Typ het wachtwoord om ALLE spelers en antwoorden te wissen:");
-            if (pw === "Pasen") {
-                const { error } = await client.from('spelers').delete().neq('naam', 'placeholder_dummy');
-                if (!error) {
-                    showMsg("Database is weer leeg! 🛑");
-                    document.getElementById('player-list').innerHTML = '<tr><td colspan="4" style="text-align:center;">Geen actieve spelers...</td></tr>';
-                } else {
-                    alert("Fout bij wissen: " + error.message);
-                }
-            } else if (pw !== null) {
-                alert("Fout wachtwoord!");
-            }
-        }
-
-        setInterval(refresh, 2000);
-        refresh();
+        setInterval(load, 2000);
+        load();
     </script>
 </body>
 </html>
