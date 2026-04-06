@@ -2,87 +2,66 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard - Paasquiz 2026</title>
+    <title>LIVE MONITOR - Paasquiz</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #0f172a; color: #f8fafc; font-family: sans-serif; padding: 20px; text-align: center; }
-        .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; max-width: 800px; margin: 20px auto; text-align: left; }
+        body { background: #0f172a; color: white; font-family: sans-serif; padding: 20px; }
+        .monitor-card { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border-bottom: 1px solid #334155; }
-        th { color: #94a3b8; text-transform: uppercase; font-size: 0.8rem; }
-        .status-bar { padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; }
-        .online { background: #064e3b; color: #34d399; }
-        .error { background: #7f1d1d; color: #fca5a5; }
+        th { text-align: left; color: #94a3b8; border-bottom: 2px solid #334155; padding: 10px; }
+        td { padding: 10px; border-bottom: 1px solid #334155; }
+        .highlight { color: #fbbf24; font-weight: bold; }
+        .error-msg { color: #ef4444; background: #451a1a; padding: 10px; border-radius: 5px; display: none; }
     </style>
 </head>
 <body>
-    <h1>🛠 Paasquiz Monitor</h1>
-    
-    <div id="login-section">
-        <input type="password" id="admin-pw" placeholder="Wachtwoord (1234)" style="padding:10px; border-radius:5px;">
-        <button onclick="checkAdmin()" style="padding:10px 20px; cursor:pointer;">Inloggen</button>
-    </div>
-
-    <div id="admin-content" style="display:none;" class="card">
-        <div id="status" class="status-bar online">Verbinding maken...</div>
+    <div class="monitor-card">
+        <h1>🐣 Live Paasquiz Monitor 2026</h1>
+        <div id="error-box" class="error-msg"></div>
         <table>
             <thead>
-                <tr><th>Speler</th><th>Vraag</th><th>Laatste Antwoord</th></tr>
+                <tr>
+                    <th>Speler</th>
+                    <th>Vraag</th>
+                    <th>Antwoord</th>
+                </tr>
             </thead>
-            <tbody id="player-table">
-                <tr><td colspan="3">Nog geen data ontvangen...</td></tr>
+            <tbody id="data-table">
+                <tr><td colspan="3">Wachten op actieve spelers...</td></tr>
             </tbody>
         </table>
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://bltdlfuxiboskglkmbhd.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const client = supabase.createClient('https://bltdlfuxiboskglkmbhd.supabase.co', 'sb_publishable_U66BtV2nkxjqnCtevNBRqw_zOrdiBDV');
 
-        function checkAdmin() {
-            if(document.getElementById('admin-pw').value === '1234') {
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('admin-content').style.display = 'block';
-                startMonitoring();
-            } else {
-                alert("Fout wachtwoord!");
-            }
-        }
-
-        async function updateTable() {
-            const { data, error } = await supabase
+        async function refreshData() {
+            const { data, error } = await client
                 .from('spelers')
                 .select('*')
                 .order('updated_at', { ascending: false });
 
-            const statusDiv = document.getElementById('status');
-            
             if (error) {
-                statusDiv.innerText = "Fout: " + error.message;
-                statusDiv.className = "status-bar error";
+                const box = document.getElementById('error-box');
+                box.style.display = 'block';
+                box.innerText = "Database Fout: " + error.message;
                 return;
             }
 
-            statusDiv.innerText = "Systeem Online - Laatste update: " + new Date().toLocaleTimeString();
-            statusDiv.className = "status-bar online";
-
             if (data && data.length > 0) {
-                const tbody = document.getElementById('player-table');
-                tbody.innerHTML = data.map(p => `
+                document.getElementById('data-table').innerHTML = data.map(row => `
                     <tr>
-                        <td style="color:#fbbf24; font-weight:bold;">${p.naam}</td>
-                        <td>${p.vraag_nr} / 10</td>
-                        <td style="font-style:italic;">${p.laatste_antwoord || '-'}</td>
+                        <td class="highlight">${row.naam}</td>
+                        <td>${row.vraag_nr} / 10</td>
+                        <td>${row.laatste_antwoord || 'Bezig...'}</td>
                     </tr>
                 `).join('');
             }
         }
 
-        function startMonitoring() {
-            updateTable();
-            setInterval(updateTable, 2000);
-        }
+        // Start direct en ververs elke 2 seconden
+        refreshData();
+        setInterval(refreshData, 2000);
     </script>
 </body>
 </html>
